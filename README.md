@@ -21,5 +21,5 @@ Implementation of a Convolutional Neural Network based on the ResNet architectur
 
 ## OR
 
-1. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://raw.githubusercontent.com/acmarkes/traffic-sign-recog/main/colab_training.ipynb)
+1. [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/acmarkes/traffic-sign-recog/blob/main/colab_training.ipynb)
 2. That's it
