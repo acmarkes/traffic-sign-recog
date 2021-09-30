@@ -1,0 +1,20 @@
+# Traffic Sign Recognition
+
+Implementation of a Convolutional Neural Network based on the ResNet architecture, trained for the recognition of traffic signs with the [GTSRB dataset](https://benchmark.ini.rub.de/gtsrb_dataset.html).
+
+
+
+## Repository Structure
+
+* utils.py: contains helper functions
+* preprocessing.py; functions for image processing 
+* loader.py: loads the images and labels into the appropriate format 
+* training.py: CNN training
+* _architecture.png: diagram of the implemented network
+
+## How to Run
+
+1. Download the training dataset [here](https://sid.erda.dk/public/archives/daaeac0d7ce1152aea9b61d9f1e19370/GTSRB_Final_Training_Images.zip)
+2. Clone this repo to your local machine and extract the downloaded zip into the same directory. Make sure you have the modules required installed (pip install - r requirements.txt)
+3. Run loader.py
+4. Run training.py
