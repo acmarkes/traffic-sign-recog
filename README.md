@@ -18,3 +18,8 @@ Implementation of a Convolutional Neural Network based on the ResNet architectur
 2. Clone this repo to your local machine and extract the downloaded zip into the same directory. Make sure you have the modules required installed (pip install - r requirements.txt)
 3. Run loader.py
 4. Run training.py
+
+## OR
+
+1. Open the colab_notebook.ipynb on Google Colab
+2. That's it
