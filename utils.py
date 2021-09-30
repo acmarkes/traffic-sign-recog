@@ -55,7 +55,7 @@ def sample_images(dataset, seed_num=42):
     axs = axes.ravel()
 
     for i,ax in enumerate(axs):
-        ax.imshow(imgs[i],  cmap=plt.cm.gray)
+        ax.imshow(np.squeeze(imgs[i]),  cmap=plt.cm.gray)
 
     fig.tight_layout()
     plt.show()

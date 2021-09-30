@@ -11,6 +11,7 @@ procImages = joblib.load('procImages.joblib')
 utils.sample_images(procImages, seed_num=42)
 trainLabels = joblib.load('labels.joblib')
 
+#%%
 X_train, y_train, X_val, y_val, X_test, y_test  = utils.get_dataset_partitions_tf(procImages, trainLabels)
 
 #%%

@@ -20,6 +20,7 @@ plt.show()
 joblib.dump(trainImages, 'images.joblib')
 joblib.dump(trainLabels, 'labels.joblib')
 
+#%%
 processedImages = preprocessor(trainImages)
 joblib.dump(processedImages, 'procImages.joblib')
 
