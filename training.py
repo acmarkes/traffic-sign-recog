@@ -1,18 +1,28 @@
 #%%
 import joblib
 import utils
+from preprocessing import preprocessor1
 import tensorflow as tf
 from tensorflow import keras
+
 from tensorflow.python.client import device_lib
 print(device_lib.list_local_devices())
 
 #%%
 procImages = joblib.load('procImages.joblib')
 utils.sample_images(procImages, seed_num=42)
-trainLabels = joblib.load('labels.joblib')
+trainLabels = joblib.load('train_labels.joblib')
 
 #%%
-X_train, y_train, X_val, y_val, X_test, y_test  = utils.get_dataset_partitions_tf(procImages, trainLabels)
+img_tweaks = {
+    'featurewise_center':True,
+    'featurewise_std_normalization':True,
+    'rotation_range':20,
+    'width_shift_range':0.2,
+    'height_shift_range':0.2,
+}
+#%%
+Xy_train, Xy_val = utils.get_dataset_partitions_tf(procImages, trainLabels, gen_kws=img_tweaks)
 
 #%%
 fashion_mnist = keras.datasets.fashion_mnist
@@ -59,7 +69,7 @@ class ResidualUnit(keras.layers.Layer):
 
 
 model = keras.models.Sequential()
-model.add(keras.layers.Conv2D(64, 7, strides=2, input_shape=[28, 28, 1],
+model.add(keras.layers.Conv2D(64, 7, strides=2, input_shape=[32, 32, 1],
                               padding="same", use_bias=False))
 model.add(keras.layers.BatchNormalization())
 model.add(keras.layers.Activation("relu"))
@@ -79,5 +89,7 @@ model.add(keras.layers.Dense(43, activation="softmax"))
 #%%
 callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=3)
 model.compile(loss="sparse_categorical_crossentropy", optimizer="nadam", metrics=["accuracy"])
-history = model.fit(X_train, y_train, batch_size=32 ,epochs=3, validation_data=(X_valid,y_valid), callbacks=[callback])
+history = model.fit(Xy_train, batch_size=32 ,epochs=3, validation_data=Xy_val, callbacks=[callback])
 score = model.evaluate(X_test,y_test)
+
+# %%

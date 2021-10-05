@@ -30,7 +30,7 @@ def normalize(img):
 def preprocessor(imgs, debug=False):
     #sequence of processing steps for the CNN
     #input: array of np.arrays of images
-    
+
     if debug:
         print(f'orig shape: {np.array(imgs).shape}')
 
@@ -48,6 +48,6 @@ def preprocessor(imgs, debug=False):
     
     if debug:
         print(f'final shape: {np.array(norm_imgs).shape}')
+    #norm_imgs = norm_imgs[..., None]
 
-    #norm_imgs = norm_imgs[..., None]    
     return norm_imgs
