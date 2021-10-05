@@ -1,10 +1,17 @@
 #%%
-import matplotlib.pyplot as plt
+import os
 import csv
+
+import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
+from pathlib import Path
+from glob import glob
 from random import sample, seed
 import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.model_selection import train_test_split
+
 
 def getPic(img_path, size):
     '''
@@ -18,7 +25,7 @@ def getPic(img_path, size):
 
 
 #%%
-def readTrafficSigns(rootpath, as_size):
+def readTrafficSigns(rootpath, split, as_size):
     '''Reads traffic sign data for German Traffic Sign Recognition Benchmark.
 
     Arguments: 
@@ -26,43 +33,57 @@ def readTrafficSigns(rootpath, as_size):
         as_size: 2-tuple to set resizing of imgs
     Returns:   list of images, list of corresponding labels'''
 
+    split = split.capitalize()
     images = [] # images
     labels = [] # corresponding labels
-    # loop over all 42 classes
-    for c in range(0,43):
-        prefix = rootpath + '/' + format(c, '05d') + '/' # subdirectory for class
-        gtFile = open(prefix + 'GT-'+ format(c, '05d') + '.csv') # annotations file
-        gtReader = csv.reader(gtFile, delimiter=';') # csv parser for annotations file
-        next(gtReader) # skip header
+    path = rootpath + '/' + split + '/' + 'Images/'
+    folders = os.listdir(path)
+
+    if split.lower() == 'test':
+        file = open(path + 'GT-final_test.csv') # annotations file
+        reader = csv.reader(file, delimiter=';') # csv parser for annotations file
+        next(reader) # skip header
         # loop over all images in current annotations file
-        for row in gtReader:
-            images.append(getPic(prefix + row[0], as_size)) # the 1th column is the filename
+        for row in reader:
+            images.append(getPic(path + row[0], as_size)) # the 1th column is the filename
             labels.append(int(row[7])) # the 8th column is the label
-        gtFile.close()
-    
+        file.close()
+        
+    elif split.lowercase() == 'training':
+        for folder in folders:
+            data_dir = Path(path+folder)
+            for file in list(data_dir.glob('*.ppm')):
+                images.append(getPic(file, as_size)) 
+                labels.append(int(folder)) 
+
     images= np.array(images)
     labels = np.array(labels)
 
     return images, labels
 
-#%%
-def sample_images(dataset, seed_num=42):
 
-    seed(seed)
+#%%
+def sample_images(dataset, seed_num=None):
+
+    if seed_num:
+        seed(seed_num)
+
     imgs = sample(list(dataset), 6) 
 
     fig, axes = plt.subplots(1, 6, figsize=(15, 10))
     axs = axes.ravel()
 
     for i,ax in enumerate(axs):
-        ax.imshow(np.squeeze(imgs[i]),  cmap=plt.cm.gray)
+        ax.imshow(np.squeeze(imgs[i]), cmap=plt.cm.gray)
 
     fig.tight_layout()
     plt.show()
+    seed(None)
 
 
 #%%
-def get_dataset_partitions_tf(data, labels, train_split=0.8, val_split=0.1, test_split=0.1, shuffle=True, shuffle_size=5000):
+""" 
+def DEPRECATED_get_dataset_partitions_tf(data, labels, train_split=0.8, val_split=0.1, test_split=0.1, shuffle=True, shuffle_size=5000):
     assert (train_split + test_split + val_split) == 1
     
     dataset = tf.data.Dataset.from_tensor_slices((data, labels))
@@ -86,5 +107,22 @@ def get_dataset_partitions_tf(data, labels, train_split=0.8, val_split=0.1, test
 
     return X_train, y_train, X_val, y_val, X_test, y_test
     #train, val, test
+ """
+#%%
+def get_dataset_partitions_tf(data, labels, val_split=0.15, seed=42, train_batch_size = 32, val_batch_size = 8, gen_kws={}):
 
+    X_train, X_val, y_train, y_val = train_test_split(data, labels, test_size=val_split, stratify=labels, random_state=seed)
 
+    data = np.concatenate((X_train, X_val))
+    labels = np.concatenate((y_train, y_val))
+
+    datagen = ImageDataGenerator(validation_split=val_split, **gen_kws)
+    # compute quantities required for featurewise normalization
+    # (std, mean, and principal components if ZCA whitening is applied)
+    datagen.fit(data)
+
+    #split dataset into train and validation sets
+    Xy_train = datagen.flow(data, labels, batch_size=train_batch_size, subset='training')
+    Xy_val = datagen.flow(data, labels, batch_size=val_batch_size, subset='validation')
+
+    return Xy_train, Xy_val
