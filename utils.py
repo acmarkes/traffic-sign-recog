@@ -49,7 +49,7 @@ def readTrafficSigns(rootpath, split, as_size):
             labels.append(int(row[7])) # the 8th column is the label
         file.close()
         
-    elif split.lowercase() == 'training':
+    elif split.lower() == 'training':
         for folder in folders:
             data_dir = Path(path+folder)
             for file in list(data_dir.glob('*.ppm')):
