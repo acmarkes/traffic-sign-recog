@@ -12,14 +12,15 @@ class ResidualUnit(keras.layers.Layer):
             keras.layers.BatchNormalization(),
             self.activation,
 
-            keras.layers.Conv2D(filters, 3, strides=strides,
+            keras.layers.Conv2D(filters, 3, strides=1,
                                 padding="same", use_bias=False),
             keras.layers.BatchNormalization(),
             self.activation,
 
             keras.layers.Conv2D(filters, 1, strides=1,
                                 padding="same", use_bias=False),
-            keras.layers.BatchNormalization()]
+            keras.layers.BatchNormalization()
+            ]
 
         self.conv_block = []
         if strides > 1:
