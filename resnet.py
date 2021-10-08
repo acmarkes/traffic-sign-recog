@@ -37,7 +37,7 @@ class ResidualBlock(keras.layers.Layer):
         self.conv_block = []
         if strides > 1:
             self.conv_block = [
-                keras.layers.Conv2D(filters[1], 1, strides=strides,
+                keras.layers.Conv2D(filters, 1, strides=strides,
                                     padding="same", use_bias=False),
                 keras.layers.BatchNormalization()]
 
