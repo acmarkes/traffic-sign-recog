@@ -19,17 +19,17 @@ class ResidualBlock(keras.layers.Layer):
 
         self.activation = keras.activations.get(activation)
         self.id_block = [
-            keras.layers.Conv2D(filters[0], 1, strides=strides,
+            keras.layers.Conv2D(filters, 1, strides=strides,
             padding="same", use_bias=False),
             keras.layers.BatchNormalization(),
             self.activation,
 
-            keras.layers.Conv2D(filters[0], 3, strides=1,
+            keras.layers.Conv2D(filters, 3, strides=1,
                                 padding="same", use_bias=False),
             keras.layers.BatchNormalization(),
             self.activation,
 
-            keras.layers.Conv2D(filters[1], 1, strides=1,
+            keras.layers.Conv2D(filters, 1, strides=1,
                                 padding="same", use_bias=False),
             keras.layers.BatchNormalization()
             ]
@@ -57,7 +57,7 @@ class ResidualBlock(keras.layers.Layer):
         })
         return config
 
-class ResNet(keras.Model):
+class ResNetFunctional(keras.Model):
     def __init__(self, num_classes=1000):
         super(ResNet, self).__init__()
         self.num_classes = num_classes       
@@ -82,9 +82,9 @@ class ResNet(keras.Model):
     def call(self, inputs):
         return self.model(inputs)
 
-class ResNetSequential(keras.Model):
+class ResNet(keras.Model):
     def __init__(self, num_classes=1000):
-        super(ResNetSequential, self).__init__()
+        super(ResNet, self).__init__()
         self.num_classes = num_classes
         self.model = keras.models.Sequential(name='ResNet')
         self.model.add(keras.layers.Conv2D(64, 7, strides=2, input_shape=[32, 32, 1],
@@ -93,7 +93,7 @@ class ResNetSequential(keras.Model):
         self.model.add(keras.layers.Activation("relu"))
         self.model.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
 
-        filter_list = [[64,256]] * 3 + [[128,512]] * 4 + [[256,1024]] * 6 + [[512,2048]] * 3
+        filter_list = [64] * 3 + [128] * 4 + [256] * 6 + [512] * 3
 
         prev_filters = []
 
