@@ -17,19 +17,24 @@ class ResidualBlock(keras.layers.Layer):
 
         self._name = f'convolutional_block_{ResidualBlock.conv_block_amount}' if strides == 2 else f'identity_block_{ResidualBlock.id_block_amount}'
 
+        if isinstance(filters,list):
+            f1,f2,f3 = filters[0], filters[0], filters[1]
+        else:
+            f1 = f2 = f3 = filters
+
         self.activation = keras.activations.get(activation)
         self.id_block = [
-            keras.layers.Conv2D(filters, 1, strides=strides,
+            keras.layers.Conv2D(f1, 1, strides=strides,
             padding="same", use_bias=False),
             keras.layers.BatchNormalization(),
             self.activation,
 
-            keras.layers.Conv2D(filters, 3, strides=1,
+            keras.layers.Conv2D(f2, 3, strides=1,
                                 padding="same", use_bias=False),
             keras.layers.BatchNormalization(),
             self.activation,
 
-            keras.layers.Conv2D(filters, 1, strides=1,
+            keras.layers.Conv2D(f3, 1, strides=1,
                                 padding="same", use_bias=False),
             keras.layers.BatchNormalization()
             ]
@@ -37,7 +42,7 @@ class ResidualBlock(keras.layers.Layer):
         self.conv_block = []
         if strides > 1:
             self.conv_block = [
-                keras.layers.Conv2D(filters, 1, strides=strides,
+                keras.layers.Conv2D(f3, 1, strides=strides,
                                     padding="same", use_bias=False),
                 keras.layers.BatchNormalization()]
 
@@ -57,34 +62,35 @@ class ResidualBlock(keras.layers.Layer):
         })
         return config
 
-class ResNetFunctional(keras.Model):
+class ResNet50(keras.Model):
     def __init__(self, num_classes=1000):
-        super(ResNet, self).__init__()
-        self.num_classes = num_classes       
-        self.model = keras.layers.Conv2D(64, 7, strides=2, input_shape = [32,32,1], padding="same", use_bias=False)
-        self.model = keras.layers.BatchNormalization()(self.model)
-        self.model = keras.layers.Activation("relu")(self.model)
-        self.model = keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same")(self.model)
+        super(ResNet50, self).__init__()
+        self.num_classes = num_classes
+        self.model = keras.models.Sequential(name='ResNet')
+        self.model.add(keras.layers.Conv2D(64, 7, strides=2, input_shape=[32, 32, 1],
+                                    padding="same", use_bias=False))
+        self.model.add(keras.layers.BatchNormalization())
+        self.model.add(keras.layers.Activation("relu"))
+        self.model.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
 
         filter_list = [[64,256]] * 3 + [[128,512]] * 4 + [[256,1024]] * 6 + [[512,2048]] * 3
-
         prev_filters = []
 
         for filters in filter_list:        #list of filters to be used
             strides = 1 if filters == prev_filters else 2                   #making images smaller at every change of number of filters
-            self.model = ResidualBlock(filters, strides=strides)(self.model)
+            self.model.add(ResidualBlock(filters, strides=strides))
             prev_filters = filters
 
-        self.model = keras.layers.GlobalAvgPool2D()(self.model)
-        self.model = keras.layers.Flatten()(self.model)
-        self.model = keras.layers.Dense(self.num_classes, activation="softmax")(self.model)           #fully connected layer outputting 43 classes
+        self.model.add(keras.layers.GlobalAvgPool2D())
+        self.model.add(keras.layers.Flatten())
+        self.model.add(keras.layers.Dense(self.num_classes, activation="softmax"))             #fully connected layer outputting 43 classes
 
     def call(self, inputs):
         return self.model(inputs)
 
-class ResNet(keras.Model):
+class ResNetOwn(keras.Model):
     def __init__(self, num_classes=1000):
-        super(ResNet, self).__init__()
+        super(ResNetOwn, self).__init__()
         self.num_classes = num_classes
         self.model = keras.models.Sequential(name='ResNet')
         self.model.add(keras.layers.Conv2D(64, 7, strides=2, input_shape=[32, 32, 1],
