@@ -29,7 +29,8 @@ def readTrafficSigns(rootpath, split, as_size):
     '''Reads traffic sign data for German Traffic Sign Recognition Benchmark.
 
     Arguments: 
-        rootpath: path to the traffic sign data, for example './GTSRB/Training'
+        rootpath: path to the traffic sign data, for example './GTSRB/'
+        split: training or test
         as_size: 2-tuple to set resizing of imgs
     Returns:   list of images, list of corresponding labels'''
 
@@ -64,6 +65,8 @@ def readTrafficSigns(rootpath, split, as_size):
 
 #%%
 def sample_images(dataset, seed_num=None):
+    #utility function for plotting of six random images in a dataset
+    #dataset = numpy array of images
 
     if seed_num:
         seed(seed_num)
@@ -80,45 +83,29 @@ def sample_images(dataset, seed_num=None):
     plt.show()
     seed(None)
 
-
-#%%
-""" 
-def DEPRECATED_get_dataset_partitions_tf(data, labels, train_split=0.8, val_split=0.1, test_split=0.1, shuffle=True, shuffle_size=5000):
-    assert (train_split + test_split + val_split) == 1
-    
-    dataset = tf.data.Dataset.from_tensor_slices((data, labels))
-    dataset_size = tf.data.experimental.cardinality(dataset).numpy()
-
-
-    if shuffle:
-        # Specify seed to always have the same split distribution between runs
-        dataset = dataset.shuffle(shuffle_size, seed=42)
-   
-    train_size = int(train_split * dataset_size)
-    val_size = int(val_split * dataset_size)
-    
-    train = dataset.take(train_size)
-    val = dataset.skip(train_size).take(val_size)
-    test = dataset.skip(train_size).skip(val_size)
-    
-    X_train, y_train = np.array([x.numpy() for x, y in train]), np.array([y.numpy() for x, y in train])
-    X_val, y_val = np.array([x.numpy() for x, y in val]), np.array([y.numpy() for x, y in val])
-    X_test, y_test = np.array([x.numpy() for x, y in test]), np.array([y.numpy() for x, y in test])
-
-    return X_train, y_train, X_val, y_val, X_test, y_test
-    #train, val, test
- """
 #%%
 def get_dataset_partitions_tf(data, labels, val_split=0.15, seed=42, train_batch_size = 32, val_batch_size = 8, gen_kws={}):
 
+    #function for creation of Training and Validation Tensors with stratified classes and support for data augmentation
+    """ input:
+            data: numpy array of images
+            labels: numpy array of labels
+            val_split: (float) [0,1] representing size of validation set
+            seed: random state seed for the shuffling of the data
+            train_batch_size, val_batch_size: (int) training and validation batch sizes
+            gen_kws: (dict) arguments for data augmentation compatible with tensorflow.keras.preprocessing.image.ImageDataGenerator
+    """
+
+    #creating stratified splits
     X_train, X_val, y_train, y_val = train_test_split(data, labels, test_size=val_split, stratify=labels, random_state=seed)
 
+    #putting them back together
     data = np.concatenate((X_train, X_val))
     labels = np.concatenate((y_train, y_val))
 
+    #splitting train and validation sets with data augmentation support
     datagen = ImageDataGenerator(validation_split=val_split, **gen_kws)
-    # compute quantities required for featurewise normalization
-    # (std, mean, and principal components if ZCA whitening is applied)
+
     datagen.fit(data)
 
     #split dataset into train and validation sets
