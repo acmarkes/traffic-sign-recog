@@ -70,6 +70,30 @@ class ResidualBlock(keras.layers.Layer):
         })
         return config
 
+
+def resnet18(num_classes, name='ResNet34'):
+    model = keras.models.Sequential(name=name)
+    model.add(keras.layers.Conv2D(64, 5, strides=1, input_shape=[32, 32, 1],
+                                padding="same", use_bias=False))
+    model.add(keras.layers.BatchNormalization())
+    model.add(keras.layers.Activation("relu"))
+    model.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
+
+    filter_list = [64] * 2 + [128] * 2 + [256] * 2 + [512] * 2
+
+    prev_filters = []
+    #conv_block + (n-1) * id_blocks
+    for filters in filter_list:        #list of filters to be used
+        strides = 1 if filters == prev_filters else 2                   #making images smaller at every change of number of filters
+        model.add(ResidualBlock(filters, strides=strides))
+        prev_filters = filters
+
+    model.add(keras.layers.GlobalAvgPool2D())
+    model.add(keras.layers.Flatten())
+    model.add(keras.layers.Dense(num_classes, activation="softmax"))             #fully connected layer outputting 43 classes
+
+    return model
+
 def resnet34(num_classes, name='ResNet34'):
     model = keras.models.Sequential(name=name)
     model.add(keras.layers.Conv2D(64, 5, strides=1, input_shape=[32, 32, 1],
@@ -89,7 +113,7 @@ def resnet34(num_classes, name='ResNet34'):
 
     model.add(keras.layers.GlobalAvgPool2D())
     model.add(keras.layers.Flatten())
-    model.add(keras.layers.Dense(43, activation="softmax"))             #fully connected layer outputting 43 classes
+    model.add(keras.layers.Dense(num_classes, activation="softmax"))             #fully connected layer outputting 43 classes
 
     return model
 
@@ -112,6 +136,6 @@ def resnet50(num_classes, name='ResNet50'):
 
     model.add(keras.layers.GlobalAvgPool2D())
     model.add(keras.layers.Flatten())
-    model.add(keras.layers.Dense(43, activation="softmax"))             #fully connected layer outputting 43 classes
+    model.add(keras.layers.Dense(num_classes, activation="softmax"))             #fully connected layer outputting 43 classes
 
     return model

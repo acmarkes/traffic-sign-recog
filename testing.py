@@ -16,12 +16,12 @@ print(device_lib.list_local_devices())
 
 
 #%%
-model = keras.models.Sequential()
-model.add(keras.layers.Conv2D(64, 5, strides=1, input_shape=[32, 32, 1],
+model34 = keras.models.Sequential()
+model34.add(keras.layers.Conv2D(64, 5, strides=1, input_shape=[32, 32, 1],
                               padding="same", use_bias=False))
-model.add(keras.layers.BatchNormalization())
-model.add(keras.layers.Activation("relu"))
-model.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
+model34.add(keras.layers.BatchNormalization())
+model34.add(keras.layers.Activation("relu"))
+model34.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
 
 filter_list = [64] * 3 + [128] * 4 + [256] * 6 + [512] * 3
 
@@ -29,13 +29,33 @@ prev_filters = []
 #conv_block + (n-1) * id_blocks
 for filters in filter_list:        #list of filters to be used
     strides = 1 if filters == prev_filters else 2                   #making images smaller at every change of number of filters
-    model.add(ResidualBlock(filters, strides=strides))
+    model34.add(ResidualBlock(filters, strides=strides))
     prev_filters = filters
 
-model.add(keras.layers.GlobalAvgPool2D())
-model.add(keras.layers.Flatten())
-model.add(keras.layers.Dense(43, activation="softmax"))             #fully connected layer outputting 43 classes
+model34.add(keras.layers.GlobalAvgPool2D())
+model34.add(keras.layers.Flatten())
+model34.add(keras.layers.Dense(43, activation="softmax"))             #fully connected layer outputting 43 classes
 
+#%%
+model18 = keras.models.Sequential()
+model18.add(keras.layers.Conv2D(64, 5, strides=1, input_shape=[32, 32, 1],
+                              padding="same", use_bias=False))
+model18.add(keras.layers.BatchNormalization())
+model18.add(keras.layers.Activation("relu"))
+model18.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
+
+filter_list = [64] * 2 + [128] * 2 + [256] * 2 + [512] * 2
+
+prev_filters = []
+#conv_block + (n-1) * id_blocks
+for filters in filter_list:        #list of filters to be used
+    strides = 1 if filters == prev_filters else 2                   #making images smaller at every change of number of filters
+    model18.add(ResidualBlock(filters, strides=strides))
+    prev_filters = filters
+
+model18.add(keras.layers.GlobalAvgPool2D())
+model18.add(keras.layers.Flatten())
+model18.add(keras.layers.Dense(43, activation="softmax"))             #fully connected layer outputting 43 classes
 
 # %%
 model50 = keras.models.Sequential()
@@ -80,17 +100,28 @@ datagen.fit(procTestImages)
 Xy_test = datagen.flow(procTestImages, testLabels, batch_size=32) #creating data augmented tensor of test images
 
 #%%
-#loading weights from trained model
-model.load_weights('./runs/best_resnet_weights.hdf5')
-model50.load_weights('./runs/best_resnet50_weights.hdf5')
-
+folders = ['adam 0.001', 'adam 0.0001','nadam 0.001', 'nadam 0.0001']
+optimizers = [keras.optimizers.Adam(learning_rate = 0.001), keras.optimizers.Adam(learning_rate = 0.0001), keras.optimizers.Nadam(learning_rate = 0.001), keras.optimizers.Nadam(learning_rate = 0.0001)]
 
 #%%
-model.compile(loss="sparse_categorical_crossentropy", optimizer="nadam", metrics=["accuracy"])
-model.evaluate(Xy_test)
 
-# %%
-model50.compile(loss="sparse_categorical_crossentropy", optimizer="nadam", metrics=["accuracy"])
-model50.evaluate(Xy_test)
+for folder, optimizer in zip(folders,optimizers):
+    print(f'Testing with parameters {folder}')
+    #loading weights from trained model
+    model18.load_weights(f'./runs/{folder}/best_resnet18_weights.hdf5')
+    model34.load_weights(f'./runs/{folder}/best_resnet34_weights.hdf5')
+    model50.load_weights(f'./runs/{folder}/best_resnet50_weights.hdf5')
+
+    print('Testing ResNet18 on new data')
+    model18.compile(loss="sparse_categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
+    model18.evaluate(Xy_test)
+
+    print('Testing ResNet34 on new data')
+    model34.compile(loss="sparse_categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
+    model34.evaluate(Xy_test)
+
+    print('Testing ResNet50 on new data')
+    model50.compile(loss="sparse_categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"])
+    model50.evaluate(Xy_test)
 
 # %%
