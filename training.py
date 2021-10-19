@@ -15,9 +15,9 @@ print(device_lib.list_local_devices())
 
 #%%
 #loading processed training images and labels
-procTrainImages = joblib.load('procTrainImages.joblib')
+procTrainImages = joblib.load('./data/procTrainImages.joblib')
 utils.sample_images(procTrainImages, seed_num=42)
-trainLabels = joblib.load('train_labels.joblib')
+trainLabels = joblib.load('./data/train_labels.joblib')
 
 #%%
 img_tweaks = {

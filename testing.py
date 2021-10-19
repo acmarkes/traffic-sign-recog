@@ -8,7 +8,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 import utils
 from preprocessing import preprocessor
-from resnet import ResidualBlock
+from resnet import ResidualBlock, resnet18, resnet34, resnet50
 
 
 from tensorflow.python.client import device_lib
@@ -16,74 +16,10 @@ print(device_lib.list_local_devices())
 
 
 #%%
-model34 = keras.models.Sequential()
-model34.add(keras.layers.Conv2D(64, 5, strides=1, input_shape=[32, 32, 1],
-                              padding="same", use_bias=False))
-model34.add(keras.layers.BatchNormalization())
-model34.add(keras.layers.Activation("relu"))
-model34.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
-
-filter_list = [64] * 3 + [128] * 4 + [256] * 6 + [512] * 3
-
-prev_filters = []
-#conv_block + (n-1) * id_blocks
-for filters in filter_list:        #list of filters to be used
-    strides = 1 if filters == prev_filters else 2                   #making images smaller at every change of number of filters
-    model34.add(ResidualBlock(filters, strides=strides))
-    prev_filters = filters
-
-model34.add(keras.layers.GlobalAvgPool2D())
-model34.add(keras.layers.Flatten())
-model34.add(keras.layers.Dense(43, activation="softmax"))             #fully connected layer outputting 43 classes
-
-#%%
-model18 = keras.models.Sequential()
-model18.add(keras.layers.Conv2D(64, 5, strides=1, input_shape=[32, 32, 1],
-                              padding="same", use_bias=False))
-model18.add(keras.layers.BatchNormalization())
-model18.add(keras.layers.Activation("relu"))
-model18.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
-
-filter_list = [64] * 2 + [128] * 2 + [256] * 2 + [512] * 2
-
-prev_filters = []
-#conv_block + (n-1) * id_blocks
-for filters in filter_list:        #list of filters to be used
-    strides = 1 if filters == prev_filters else 2                   #making images smaller at every change of number of filters
-    model18.add(ResidualBlock(filters, strides=strides))
-    prev_filters = filters
-
-model18.add(keras.layers.GlobalAvgPool2D())
-model18.add(keras.layers.Flatten())
-model18.add(keras.layers.Dense(43, activation="softmax"))             #fully connected layer outputting 43 classes
-
-# %%
-model50 = keras.models.Sequential()
-model50.add(keras.layers.Conv2D(64, 5, strides=1, input_shape=[32, 32, 1],
-                              padding="same", use_bias=False))
-model50.add(keras.layers.BatchNormalization())
-model50.add(keras.layers.Activation("relu"))
-model50.add(keras.layers.MaxPool2D(pool_size=3, strides=2, padding="same"))
-
-filter_list = [[64,256]] * 3 + [[128,512]] * 4 + [[256,1024]] * 6 + [[512,2048]] * 3
-
-prev_filters = []
-#conv_block + (n-1) * id_blocks
-for filters in filter_list:        #list of filters to be used
-    strides = 1 if filters == prev_filters else 2                   #making images smaller at every change of number of filters
-    model50.add(ResidualBlock(filters, strides=strides))
-    prev_filters = filters
-
-model50.add(keras.layers.GlobalAvgPool2D())
-model50.add(keras.layers.Flatten())
-model50.add(keras.layers.Dense(43, activation="softmax"))             #fully connected layer outputting 43 classes
-
-
-#%%
 #loading processed test images and test labels
-procTestImages = joblib.load('procTestImages.joblib')
+procTestImages = joblib.load('./data/procTestImages.joblib')
 utils.sample_images(procTestImages, seed_num=42)
-testLabels = joblib.load('test_labels.joblib')
+testLabels = joblib.load('./data/test_labels.joblib')
 
 #%%
 img_tweaks = {
@@ -98,6 +34,13 @@ datagen = ImageDataGenerator(**img_tweaks)
 
 datagen.fit(procTestImages)
 Xy_test = datagen.flow(procTestImages, testLabels, batch_size=32) #creating data augmented tensor of test images
+
+
+#%%
+model18 = resnet18(43)
+model34 = resnet34(43)
+model50 = resnet50(43)
+
 
 #%%
 folders = ['adam 0.001', 'adam 0.0001','nadam 0.001', 'nadam 0.0001']
